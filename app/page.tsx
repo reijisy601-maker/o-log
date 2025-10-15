@@ -2,8 +2,8 @@
 
 import type React from "react"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useEffect } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -20,6 +20,14 @@ export default function LoginPage() {
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
   const [emailSent, setEmailSent] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  useEffect(() => {
+    const error = searchParams.get("error")
+    if (error) {
+      setMessage({ type: "error", text: decodeURIComponent(error) })
+    }
+  }, [searchParams])
 
   const checkDomain = (email: string): boolean => {
     const allowedDomains: string[] = []
