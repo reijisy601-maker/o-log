@@ -1,34 +1,30 @@
-import { createClient } from "@supabase/supabase-js"
 import { NextResponse, type NextRequest } from "next/server"
 
 export async function middleware(request: NextRequest) {
+  console.log("[v0] Middleware: Request path:", request.nextUrl.pathname)
+
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    console.log("[v0] Middleware: No Supabase env vars, allowing request")
     return NextResponse.next()
   }
 
   const response = NextResponse.next()
 
-  const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY, {
-    auth: {
-      persistSession: false,
-    },
-  })
-
-  // 認証が必要なパスをチェック
   const protectedPaths = ["/dashboard", "/admin"]
   const isProtectedPath = protectedPaths.some((path) => request.nextUrl.pathname.startsWith(path))
 
+  console.log("[v0] Middleware: Is protected path:", isProtectedPath)
+
   if (isProtectedPath) {
     const accessToken = request.cookies.get("sb-access-token")?.value
+    console.log("[v0] Middleware: Access token:", accessToken ? "present" : "MISSING")
 
     if (!accessToken) {
+      console.log("[v0] Middleware: No access token, redirecting to /")
       return NextResponse.redirect(new URL("/", request.url))
     }
 
-    // 管理者エリアの場合は、管理者権限をチェック
-    if (request.nextUrl.pathname.startsWith("/admin")) {
-      // TODO: 管理者権限チェックを実装
-    }
+    console.log("[v0] Middleware: Access token found, allowing request")
   }
 
   return response
