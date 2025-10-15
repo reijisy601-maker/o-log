@@ -4,6 +4,28 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { LoadingSpinner } from "@/components/loading-spinner"
 
+async function ensureSessionCookies(maxAttempts = 10, delayMs = 100) {
+  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+    try {
+      const res = await fetch("/api/auth/verify", {
+        method: "GET",
+        credentials: "include",
+        cache: "no-store",
+      })
+
+      if (res.ok) {
+        return true
+      }
+    } catch (error) {
+      console.warn("[v0] Cookie verification attempt failed", error)
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, delayMs))
+  }
+
+  return false
+}
+
 export default function AuthCallbackPage() {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
@@ -82,20 +104,21 @@ export default function AuthCallbackPage() {
           return
         }
 
-        const { user, isAdmin } = await response.json()
+        const { user, isAdmin, redirectTo } = await response.json()
         logs.push(`10. Auth successful - User: ${user.email}, Admin: ${isAdmin}`)
         console.log("[v0] 10. Auth successful, user:", user.email, "isAdmin:", isAdmin)
 
-        const redirectPath = isAdmin ? "/admin" : "/dashboard"
-        logs.push(`11. Redirecting to: ${redirectPath}`)
-        console.log("[v0] 11. Redirecting to:", redirectPath)
+        const destination = typeof redirectTo === "string" ? redirectTo : isAdmin ? "/admin" : "/dashboard"
+        logs.push(`11. Redirecting to: ${destination}`)
+        console.log("[v0] 11. Redirecting to:", destination)
 
         setDebugInfo(logs)
 
-        await new Promise((resolve) => setTimeout(resolve, 1000))
+        await ensureSessionCookies()
 
         console.log("[v0] 12. Executing redirect...")
-        router.push(redirectPath)
+        window.location.assign(destination)
+        return
       } catch (error) {
         logs.push(`ERROR: ${error instanceof Error ? error.message : String(error)}`)
         console.error("[v0] Auth callback error:", error)
