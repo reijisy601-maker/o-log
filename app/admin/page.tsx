@@ -20,7 +20,7 @@ export default async function AdminDashboardPage() {
   const currentStats = monthlyStats.find((s) => s.month === currentMonth)
   const nonSubmittedUsers = await getNonSubmittedUsers(supabase, currentMonth)
 
-  const { count: totalUsers } = await supabase.from("user_profiles").select("*", { count: "exact", head: true })
+  const { count: totalUsers } = await supabase.from("profiles").select("*", { count: "exact", head: true })
 
   return (
     <div className="space-y-8">
@@ -36,7 +36,11 @@ export default async function AdminDashboardPage() {
         />
         <StatCard
           title="平均スコア"
-          value={currentStats?.average_score?.toFixed(1) || "N/A"}
+          value={
+            typeof currentStats?.average_score === "number"
+              ? currentStats.average_score.toFixed(1)
+              : "N/A"
+          }
           icon={Award}
           description="今月の平均"
         />

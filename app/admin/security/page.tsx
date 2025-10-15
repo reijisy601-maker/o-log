@@ -5,20 +5,21 @@ import { SecuritySettingsForm } from "@/components/security-settings-form"
 export default async function AdminSecurityPage() {
   const supabase = await getSupabaseServerClient()
 
-  const { data: settings } = await supabase.from("security_settings").select("*")
+  const { data, error } = await supabase.rpc("admin_list_allowed_domains")
+  if (error) {
+    console.error("Failed to load allowed domains:", error)
+  }
 
-  const settingsMap = settings?.reduce(
-    (acc, setting) => {
-      acc[setting.key] = setting.value
-      return acc
-    },
-    {} as Record<string, unknown>,
-  )
+  const allowedDomains = (data ?? []).map((row: { domain: string }) => row.domain)
 
   return (
     <div className="space-y-8">
       <PageHeader title="セキュリティ設定" description="システムのセキュリティ設定を管理" />
-      <SecuritySettingsForm initialSettings={settingsMap || {}} />
+      <SecuritySettingsForm
+        initialSettings={{
+          allowed_domains: allowedDomains,
+        }}
+      />
     </div>
   )
 }
