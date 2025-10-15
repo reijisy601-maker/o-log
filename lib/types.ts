@@ -5,22 +5,23 @@ export interface User {
   role: "user" | "admin"
   created_at: string
   last_login?: string
+  location_note?: string
 }
 
 export interface Submission {
   id: string
   user_id: string
-  image_url: string
-  luggage_space_image_url?: string
-  tool_bag_image_url?: string
+  image_url: string | null
+  luggage_space_image_url?: string | null
+  tool_bag_image_url?: string | null
   score: number
-  luggage_space_score?: number
-  tool_bag_score?: number
-  luggage_space_comment?: string
-  tool_bag_comment?: string
+  luggage_space_score?: number | null
+  tool_bag_score?: number | null
+  luggage_space_comment?: string | null
+  tool_bag_comment?: string | null
   month: string
   created_at: string
-  analysis_result?: string
+  analysis_result?: string | null
 }
 
 export interface MonthlyStats {
@@ -28,7 +29,7 @@ export interface MonthlyStats {
   total_users: number
   submitted_users: number
   submission_rate: number
-  average_score: number
+  average_score: number | null
 }
 
 export interface AdminLog {
@@ -36,12 +37,10 @@ export interface AdminLog {
   admin_id: string
   action: string
   target_user_id?: string
-  details?: string
+  details?: Record<string, unknown> | null
   created_at: string
 }
 
 export interface SecuritySettings {
   allowed_domains: string[]
-  max_file_size: number
-  allowed_file_types: string[]
 }
