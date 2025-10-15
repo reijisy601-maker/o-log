@@ -1,33 +1,31 @@
 import { NextResponse, type NextRequest } from "next/server"
 
 export async function middleware(request: NextRequest) {
-  console.log("[v0] Middleware: Request path:", request.nextUrl.pathname)
+  const path = request.nextUrl.pathname
+  console.log("[v0] Middleware: Request path:", path)
 
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    console.log("[v0] Middleware: No Supabase env vars, allowing request")
+  const allCookies = request.cookies.getAll()
+  console.log("[v0] Middleware: All cookies:", allCookies.map((c) => c.name).join(", "))
+
+  const protectedPaths = ["/dashboard", "/admin"]
+  const isProtectedPath = protectedPaths.some((p) => path.startsWith(p))
+
+  if (!isProtectedPath) {
+    console.log("[v0] Middleware: Public path, allowing request")
     return NextResponse.next()
   }
 
-  const response = NextResponse.next()
+  console.log("[v0] Middleware: Protected path, checking auth")
 
-  const protectedPaths = ["/dashboard", "/admin"]
-  const isProtectedPath = protectedPaths.some((path) => request.nextUrl.pathname.startsWith(path))
+  const supabaseCookie = allCookies.find((c) => c.name.startsWith("sb-") && c.name.includes("auth-token"))
 
-  console.log("[v0] Middleware: Is protected path:", isProtectedPath)
-
-  if (isProtectedPath) {
-    const accessToken = request.cookies.get("sb-access-token")?.value
-    console.log("[v0] Middleware: Access token:", accessToken ? "present" : "MISSING")
-
-    if (!accessToken) {
-      console.log("[v0] Middleware: No access token, redirecting to /")
-      return NextResponse.redirect(new URL("/", request.url))
-    }
-
-    console.log("[v0] Middleware: Access token found, allowing request")
+  if (!supabaseCookie) {
+    console.log("[v0] Middleware: No Supabase auth cookie found, redirecting to /")
+    return NextResponse.redirect(new URL("/", request.url))
   }
 
-  return response
+  console.log("[v0] Middleware: Auth cookie found:", supabaseCookie.name)
+  return NextResponse.next()
 }
 
 export const config = {
