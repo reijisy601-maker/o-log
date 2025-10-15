@@ -17,7 +17,7 @@ export async function middleware(request: NextRequest) {
 
   console.log("[v0] Middleware: Protected path, checking auth")
 
-  const supabaseCookie = allCookies.find((c) => c.name.startsWith("sb-") && c.name.includes("auth-token"))
+  const supabaseCookie = allCookies.find((c) => c.name === "sb-access-token" && c.value)
 
   if (!supabaseCookie) {
     console.log("[v0] Middleware: No Supabase auth cookie found, redirecting to /")
