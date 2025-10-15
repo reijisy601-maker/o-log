@@ -5,6 +5,18 @@ import { UsersTable } from "@/components/users-table"
 export default async function AdminUsersPage() {
   const supabase = await getSupabaseServerClient()
 
+  if (!supabase) {
+    return (
+      <div className="space-y-8">
+        <PageHeader title="ユーザー管理" description="環境変数の設定が必要です" />
+        <p className="text-sm text-muted-foreground">
+          Supabase の環境変数が未設定のためユーザー一覧を取得できませんでした。NEXT_PUBLIC_SUPABASE_URL と
+          NEXT_PUBLIC_SUPABASE_ANON_KEY を設定してください。
+        </p>
+      </div>
+    )
+  }
+
   const { data: users, error } = await supabase
     .from("profiles")
     .select("id, email, role, first_name, last_name, notes, created_at, last_login")
