@@ -95,7 +95,9 @@ export default function AuthCallbackPage() {
         await new Promise((resolve) => setTimeout(resolve, 1000))
 
         console.log("[v0] 12. Executing redirect...")
-        router.push(redirectPath)
+        // Use window.location.href to force a full page reload
+        // This ensures cookies are properly sent with the next request
+        window.location.href = redirectPath
       } catch (error) {
         logs.push(`ERROR: ${error instanceof Error ? error.message : String(error)}`)
         console.error("[v0] Auth callback error:", error)
